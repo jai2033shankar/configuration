@@ -292,10 +292,13 @@ export HIPCHAT_TOKEN HIPCHAT_ROOM HIPCHAT_MSG_PREFIX HIPCHAT_FROM
 export HIPCHAT_MSG_COLOR DATADOG_API_KEY
 
 if [[ ! -x /usr/bin/git || ! -x /usr/bin/pip ]]; then
+# NB: python2 is required for ansible to run, python3 is required for certain
+# other things (currently xqwatcher so it can run python2 and 3 grader code,
+# but potentially more in the future)
     echo "Installing pkg dependencies"
     /usr/bin/apt-get update
-    /usr/bin/apt-get install -y git python-pip python-apt \\
-        git-core build-essential python-dev libxml2-dev \\
+    /usr/bin/apt-get install -y git python-pip python3-pip python-apt \\
+        git-core build-essential python-dev python3-dev libxml2-dev \\
         libxslt-dev curl libmysqlclient-dev --force-yes
 fi
 
@@ -304,7 +307,12 @@ fi
 # only runs on a build from scratch
 /usr/bin/apt-get install -y python-httplib2 --force-yes
 
-# upgrade setuptools early to avoid no distributin errors
+# Must upgrade to latest before pinning to work around bug
+# https://github.com/pypa/pip/issues/3862
+pip install --upgrade pip
+pip install --upgrade pip==8.1.2
+
+# upgrade setuptools early to avoid no distribution errors
 pip install --upgrade setuptools==24.0.3
 
 rm -rf $base_dir
