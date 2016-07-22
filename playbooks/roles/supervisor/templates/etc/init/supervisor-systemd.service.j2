@@ -1,0 +1,34 @@
+[Unit]
+Description=supervisord - Supervisor process control system
+Documentation=http://supervisord.org
+After=network.target
+
+
+[Service]
+{% if disable_edx_services and not devstack -%}
+# Run pre_supervisor
+ExecStartPre={{ supervisor_venv_dir }}/bin/python {{ supervisor_app_dir }}/pre_supervisor_checks.py \
+  {% if SUPERVISOR_HIPCHAT_API_KEY is defined -%}
+    --hipchat-api-key {{ SUPERVISOR_HIPCHAT_API_KEY }} --hipchat-room {{ SUPERVISOR_HIPCHAT_ROOM }} \
+  {% endif -%}
+  {%- for item in supervisor_spec -%}
+    {%- if item.code -%}
+      {%- set name = item.service.replace('_', '-') -%}
+      --{{ name }}-python {{ COMMON_BIN_DIR }}/{{ item.python }} --{{ name }}-code-dir {{ item.code }}
+      {%- if item.env is defined %} --{{ name }}-env {{ item.env }}{% endif %} \
+    {% endif %}
+  {%- endfor -%}
+  --available={{ supervisor_available_dir }} --enabled={{ supervisor_cfg_dir }}
+{% endif %}
+
+Type=forking
+User={{ supervisor_service_user }}
+TimeoutStartSec=432000
+
+ExecStart={{ supervisor_venv_dir }}/bin/supervisord -n --configuration {{ supervisor_cfg }}
+ExecReload={{ supervisor_venv_dir }}/bin/supervisorctl reload
+ExecStop={{ supervisor_venv_dir }}/bin/supervisorctl shutdown
+
+
+[Install]
+WantedBy=multi-user.target
