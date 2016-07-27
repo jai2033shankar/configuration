@@ -292,14 +292,20 @@ export HIPCHAT_TOKEN HIPCHAT_ROOM HIPCHAT_MSG_PREFIX HIPCHAT_FROM
 export HIPCHAT_MSG_COLOR DATADOG_API_KEY
 
 if [[ ! -x /usr/bin/git || ! -x /usr/bin/pip ]]; then
-# NB: python2 is required for ansible to run, python3 is required for certain
-# other things (currently xqwatcher so it can run python2 and 3 grader code,
-# but potentially more in the future)
     echo "Installing pkg dependencies"
     /usr/bin/apt-get update
-    /usr/bin/apt-get install -y git python-pip python3-pip python-apt \\
-        git-core build-essential python-dev python3-dev libxml2-dev \\
+    /usr/bin/apt-get install -y git python-pip python-apt \\
+        git-core build-essential python-dev libxml2-dev \\
         libxslt-dev curl libmysqlclient-dev --force-yes
+fi
+
+# python3 is required for certain other things
+# (currently xqwatcher so it can run python2 and 3 grader code,
+# but potentially more in the future). It's not available on Ubuntu 12.04,
+# but in those cases we don't need it anyways.
+if [[ -n "$(apt-cache search --names-only '^python3-pip$')" ]]; then
+    /usr/bin/apt-get update
+    /usr/bin/apt-get install -y python3-pip python3-dev
 fi
 
 # this is missing on 14.04 (base package on 12.04)
