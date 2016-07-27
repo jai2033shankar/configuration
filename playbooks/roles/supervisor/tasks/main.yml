@@ -126,18 +126,6 @@
     - install
     - install:base
 
-# NB: with systemd, pre_supervisor is a pre-task for supervisor, not a separate service
-- name: Create supervisor systemd job
-  template:
-    src: "etc/init/supervisor-systemd.service.j2"
-    dest: "/etc/systemd/system/{{ supervisor_service }}.service"
-    owner: root
-    group: root
-  when: ansible_distribution_major_version >= 16
-  tags:
-    - install
-    - install:base
-
 # This script is aws specific and looks up instances
 # tags and enables services based on the 'services' tag
 # on instance startup.
@@ -153,6 +141,18 @@
   tags:
     - to-remove
     - aws-specfic
+
+# NB: with systemd, pre_supervisor is a pre-task for supervisor, not a separate service
+- name: Create supervisor systemd job
+  template:
+    src: "etc/init/supervisor-systemd.service.j2"
+    dest: "/etc/systemd/system/{{ supervisor_service }}.service"
+    owner: root
+    group: root
+  when: ansible_distribution_major_version >= 16
+  tags:
+    - install
+    - install:base
 
 - name: Write the pre_suprevisor python script
   copy:
